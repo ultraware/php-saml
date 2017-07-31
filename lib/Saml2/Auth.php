@@ -4,7 +4,7 @@
  * Main class of OneLogin's PHP Toolkit
  *
  */
-class OneLogin_Saml2_Auth
+class  Ultraware_OneLogin_Saml2_Auth
 {
     /**
      * Settings data.
@@ -429,7 +429,7 @@ class OneLogin_Saml2_Auth
     {
         assert('is_array($parameters)');
 
-        $authnRequest = new OneLogin_Saml2_AuthnRequest($this->_settings, $forceAuthn, $isPassive, $setNameIdPolicy);
+        $authnRequest = new Ultraware_OneLogin_Saml2_AuthnRequest($this->_settings, $forceAuthn, $isPassive, $setNameIdPolicy);
 
         $this->_lastRequest = $authnRequest->getXML();
         $this->_lastRequestID = $authnRequest->getId();
