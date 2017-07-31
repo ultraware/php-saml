@@ -1,0 +1,15 @@
+{
+    "name": "ultraware/php-saml-idp-list",
+    "description": "OneLogin PHP SAML IDP list extension",
+    "autoload": {
+        "classmap": [
+            "lib/Saml2"
+        ]
+    },
+    "require": {
+        "php": ">=5.4.2"
+    },
+    "require": {
+        "onelogin/php-saml": "~2.11"
+    }
+}
