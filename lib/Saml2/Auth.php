@@ -4,7 +4,7 @@
  * Main class of OneLogin's PHP Toolkit
  *
  */
-class  Ultraware_OneLogin_Saml2_Auth
+class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
 {
     /**
      * Settings data.
@@ -18,7 +18,7 @@ class  Ultraware_OneLogin_Saml2_Auth
      *
      * @var array
      */
-    private $_attributes = array();
+    private $_attributes = [];
 
     /**
      * NameID
@@ -93,7 +93,7 @@ class  Ultraware_OneLogin_Saml2_Auth
      *
      * @var array
      */
-    private $_errors = array();
+    private $_errors = [];
 
     /**
      * Reason of the last error.
@@ -155,7 +155,7 @@ class  Ultraware_OneLogin_Saml2_Auth
      */
     public function setStrict($value)
     {
-        if (! (is_bool($value))) {
+        if (!(is_bool($value))) {
             throw new OneLogin_Saml2_Error(
                 'Invalid value passed to setStrict()',
                 OneLogin_Saml2_Error::SETTINGS_INVALID_SYNTAX
@@ -174,7 +174,7 @@ class  Ultraware_OneLogin_Saml2_Auth
      */
     public function processResponse($requestId = null)
     {
-        $this->_errors = array();
+        $this->_errors = [];
         $this->_errorReason = null;
         if (isset($_POST) && isset($_POST['SAMLResponse'])) {
             // AuthnResponse -- HTTP_POST Binding
@@ -208,11 +208,11 @@ class  Ultraware_OneLogin_Saml2_Auth
     /**
      * Process the SAML Logout Response / Logout Request sent by the IdP.
      *
-     * @param bool        $keepLocalSession              When false will destroy the local session, otherwise will keep it
-     * @param string|null $requestId                     The ID of the LogoutRequest sent by this SP to the IdP
-     * @param bool        $retrieveParametersFromServer
-     * @param callable    $cbDeleteSession
-     * @param bool        $stay                          True if we want to stay (returns the url string) False to redirect
+     * @param bool $keepLocalSession When false will destroy the local session, otherwise will keep it
+     * @param string|null $requestId The ID of the LogoutRequest sent by this SP to the IdP
+     * @param bool $retrieveParametersFromServer
+     * @param callable $cbDeleteSession
+     * @param bool $stay True if we want to stay (returns the url string) False to redirect
      *
      * @return string|void
      *
@@ -220,7 +220,7 @@ class  Ultraware_OneLogin_Saml2_Auth
      */
     public function processSLO($keepLocalSession = false, $requestId = null, $retrieveParametersFromServer = false, $cbDeleteSession = null, $stay = false)
     {
-        $this->_errors = array();
+        $this->_errors = [];
         $this->_errorReason = null;
         if (isset($_GET) && isset($_GET['SAMLResponse'])) {
             $logoutResponse = new OneLogin_Saml2_LogoutResponse($this->_settings, $_GET['SAMLResponse']);
@@ -262,14 +262,14 @@ class  Ultraware_OneLogin_Saml2_Auth
 
                 $logoutResponse = $responseBuilder->getResponse();
 
-                $parameters = array('SAMLResponse' => $logoutResponse);
+                $parameters = ['SAMLResponse' => $logoutResponse];
                 if (isset($_GET['RelayState'])) {
                     $parameters['RelayState'] = $_GET['RelayState'];
                 }
 
                 $security = $this->_settings->getSecurityData();
                 if (isset($security['logoutResponseSigned']) && $security['logoutResponseSigned']) {
-                    $signature = $this->buildResponseSignature($logoutResponse, isset($parameters['RelayState'])? $parameters['RelayState']: null, $security['signatureAlgorithm']);
+                    $signature = $this->buildResponseSignature($logoutResponse, isset($parameters['RelayState']) ? $parameters['RelayState'] : null, $security['signatureAlgorithm']);
                     $parameters['SigAlg'] = $security['signatureAlgorithm'];
                     $parameters['Signature'] = $signature;
                 }
@@ -289,11 +289,11 @@ class  Ultraware_OneLogin_Saml2_Auth
      * Redirects the user to the url past by parameter
      * or to the url that we defined in our SSO Request.
      *
-     * @param string $url        The target URL to redirect the user.
-     * @param array  $parameters Extra parameters to be passed as part of the url
-     * @param bool   $stay       True if we want to stay (returns the url string) False to redirect
+     * @param string $url The target URL to redirect the user.
+     * @param array $parameters Extra parameters to be passed as part of the url
+     * @param bool $stay True if we want to stay (returns the url string) False to redirect
      */
-    public function redirectTo($url = '', $parameters = array(), $stay = false)
+    public function redirectTo($url = '', $parameters = [], $stay = false)
     {
         assert('is_string($url)');
         assert('is_array($parameters)');
@@ -416,16 +416,16 @@ class  Ultraware_OneLogin_Saml2_Auth
     /**
      * Initiates the SSO process.
      *
-     * @param string|null $returnTo        The target URL the user should be returned to after login.
-     * @param array       $parameters      Extra parameters to be added to the GET
-     * @param bool        $forceAuthn      When true the AuthNReuqest will set the ForceAuthn='true'
-     * @param bool        $isPassive       When true the AuthNReuqest will set the Ispassive='true'
-     * @param bool        $stay            True if we want to stay (returns the url string) False to redirect
-     * @param bool        $setNameIdPolicy When true the AuthNReuqest will set a nameIdPolicy element
+     * @param string|null $returnTo The target URL the user should be returned to after login.
+     * @param array $parameters Extra parameters to be added to the GET
+     * @param bool $forceAuthn When true the AuthNReuqest will set the ForceAuthn='true'
+     * @param bool $isPassive When true the AuthNReuqest will set the Ispassive='true'
+     * @param bool $stay True if we want to stay (returns the url string) False to redirect
+     * @param bool $setNameIdPolicy When true the AuthNReuqest will set a nameIdPolicy element
      *
      * @return If $stay is True, it return a string with the SLO URL + LogoutRequest + parameters
      */
-    public function login($returnTo = null, $parameters = array(), $forceAuthn = false, $isPassive = false, $stay = false, $setNameIdPolicy = true)
+    public function login($returnTo = null, $parameters = [], $forceAuthn = false, $isPassive = false, $stay = false, $setNameIdPolicy = true)
     {
         assert('is_array($parameters)');
 
@@ -455,19 +455,19 @@ class  Ultraware_OneLogin_Saml2_Auth
     /**
      * Initiates the SLO process.
      *
-     * @param string|null $returnTo            The target URL the user should be returned to after logout.
-     * @param array       $parameters          Extra parameters to be added to the GET
-     * @param string|null $nameId              The NameID that will be set in the LogoutRequest.
-     * @param string|null $sessionIndex        The SessionIndex (taken from the SAML Response in the SSO process).
-     * @param bool        $stay                True if we want to stay (returns the url string) False to redirect
-     * @param string|null $nameIdFormat        The NameID Format will be set in the LogoutRequest.
+     * @param string|null $returnTo The target URL the user should be returned to after logout.
+     * @param array $parameters Extra parameters to be added to the GET
+     * @param string|null $nameId The NameID that will be set in the LogoutRequest.
+     * @param string|null $sessionIndex The SessionIndex (taken from the SAML Response in the SSO process).
+     * @param bool $stay True if we want to stay (returns the url string) False to redirect
+     * @param string|null $nameIdFormat The NameID Format will be set in the LogoutRequest.
      * @param string|null $nameIdNameQualifier The NameID NameQualifier will be set in the LogoutRequest.
      *
      * @return If $stay is True, it return a string with the SLO URL + LogoutRequest + parameters
      *
      * @throws OneLogin_Saml2_Error
      */
-    public function logout($returnTo = null, $parameters = array(), $nameId = null, $sessionIndex = null, $stay = false, $nameIdFormat = null, $nameIdNameQualifier = null)
+    public function logout($returnTo = null, $parameters = [], $nameId = null, $sessionIndex = null, $stay = false, $nameIdFormat = null, $nameIdNameQualifier = null)
     {
         assert('is_array($parameters)');
 
@@ -549,8 +549,8 @@ class  Ultraware_OneLogin_Saml2_Auth
     /**
      * Generates the Signature for a SAML Request
      *
-     * @param string $samlRequest    The SAML Request
-     * @param string $relayState     The RelayState
+     * @param string $samlRequest The SAML Request
+     * @param string $relayState The RelayState
      * @param string $signAlgorithm Signature algorithm method
      *
      * @return string A base64 encoded signature
@@ -570,20 +570,20 @@ class  Ultraware_OneLogin_Saml2_Auth
 
         $key = $this->_settings->getSPkey();
 
-        $objKey = new XMLSecurityKey($signAlgorithm, array('type' => 'private'));
+        $objKey = new XMLSecurityKey($signAlgorithm, ['type' => 'private']);
         $objKey->loadKey($key, false);
 
         $security = $this->_settings->getSecurityData();
         if ($security['lowercaseUrlencoding']) {
-            $msg = 'SAMLRequest='.rawurlencode($samlRequest);
+            $msg = 'SAMLRequest=' . rawurlencode($samlRequest);
             if (isset($relayState)) {
-                $msg .= '&RelayState='.rawurlencode($relayState);
+                $msg .= '&RelayState=' . rawurlencode($relayState);
             }
             $msg .= '&SigAlg=' . rawurlencode($signAlgorithm);
         } else {
-            $msg = 'SAMLRequest='.urlencode($samlRequest);
+            $msg = 'SAMLRequest=' . urlencode($samlRequest);
             if (isset($relayState)) {
-                $msg .= '&RelayState='.urlencode($relayState);
+                $msg .= '&RelayState=' . urlencode($relayState);
             }
             $msg .= '&SigAlg=' . urlencode($signAlgorithm);
         }
@@ -594,8 +594,8 @@ class  Ultraware_OneLogin_Saml2_Auth
     /**
      * Generates the Signature for a SAML Response
      *
-     * @param string $samlResponse  The SAML Response
-     * @param string $relayState    The RelayState
+     * @param string $samlResponse The SAML Response
+     * @param string $relayState The RelayState
      * @param string $signAlgorithm Signature algorithm method
      *
      * @return string A base64 encoded signature
@@ -613,20 +613,20 @@ class  Ultraware_OneLogin_Saml2_Auth
             );
         }
 
-        $objKey = new XMLSecurityKey($signAlgorithm, array('type' => 'private'));
+        $objKey = new XMLSecurityKey($signAlgorithm, ['type' => 'private']);
         $objKey->loadKey($key, false);
 
         $security = $this->_settings->getSecurityData();
         if ($security['lowercaseUrlencoding']) {
-            $msg = 'SAMLResponse='.rawurlencode($samlResponse);
+            $msg = 'SAMLResponse=' . rawurlencode($samlResponse);
             if (isset($relayState)) {
-                $msg .= '&RelayState='.rawurlencode($relayState);
+                $msg .= '&RelayState=' . rawurlencode($relayState);
             }
             $msg .= '&SigAlg=' . rawurlencode($signAlgorithm);
         } else {
-            $msg = 'SAMLResponse='.urlencode($samlResponse);
+            $msg = 'SAMLResponse=' . urlencode($samlResponse);
             if (isset($relayState)) {
-                $msg .= '&RelayState='.urlencode($relayState);
+                $msg .= '&RelayState=' . urlencode($relayState);
             }
             $msg .= '&SigAlg=' . urlencode($signAlgorithm);
         }

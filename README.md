@@ -1,4 +1,8 @@
-create a new Saml2 auth class with
+# PHP-saml with idp list
+Partial copy of onelogin/php-saml with scoping (idp-list)
+
+# usage
+### create a new Saml2 auth class with
 ```php
 $auth = new Ultraware_OneLogin_Saml2_Auth();
 ```
@@ -7,7 +11,7 @@ $auth = new Ultraware_OneLogin_Saml2_Auth();
 ```php
 
     // Identity Provider Data that we want connected with our SP.
-    'idp' => array (
+    'idp' => array [
 
         ....
 
@@ -24,4 +28,16 @@ $auth = new Ultraware_OneLogin_Saml2_Auth();
             // To allow an identity provider to identify the original requester
             'requesterId' => 'requesterId.nl',
         ],
+
+        ...
+
+    ]
 ```
+
+# Laravel
+```
+composer require aacotroneo/laravel-saml2
+```
+
+register the ```Ultraware\Saml2\Saml2ServiceProvider``` in your'e config/app.php instead of the aacotroneo/laravel-saml2 serviceprovider
+Add the config to the sam2_settings.php

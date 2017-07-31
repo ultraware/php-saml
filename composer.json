@@ -1,13 +1,20 @@
 {
     "name": "ultraware/php-saml",
     "description": "OneLogin PHP SAML IDP list extension",
+    "license": "MIT",
     "autoload": {
         "classmap": [
             "lib/Saml2"
-        ]
+        ],
+        "psr-4": {
+            "Ultraware\\phpSaml\\": "src/"
+        }
     },
     "require": {
         "php": ">=5.4.2",
         "onelogin/php-saml": "~2.11"
+    },
+    "suggest": {
+        "aacotroneo/laravel-saml2": "to use the saml1 option in laravel"
     }
 }
