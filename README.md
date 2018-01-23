@@ -39,5 +39,5 @@ $auth = new Ultraware_OneLogin_Saml2_Auth();
 composer require aacotroneo/laravel-saml2
 ```
 
-register the ```Ultraware\Saml2\Saml2ServiceProvider``` in your'e config/app.php instead of the aacotroneo/laravel-saml2 serviceprovider
+register the ```Ultraware\phpSaml\laravel\Saml2ServiceProvide::class``` in your'e config/app.php instead of the ```Aacotroneo\Saml2\Saml2ServiceProvider::class```
 Add the config to the sam2_settings.php
