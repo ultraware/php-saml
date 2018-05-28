@@ -18,7 +18,13 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      *
      * @var array
      */
-    private $_attributes = [];
+    private $_attributes = array();
+    /**
+     * User attributes data with FriendlyName index.
+     *
+     * @var array
+     */
+    private $_attributesWithFriendlyName = array();
 
     /**
      * NameID
@@ -62,7 +68,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      * SessionNotOnOrAfter. When the user is logged, this stored it
      * from the AuthnStatement of the SAML Response
      *
-     * @var DateTime
+     * @var int|null
      */
     private $_sessionExpiration;
 
@@ -84,7 +90,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      * The NotOnOrAfter value of the valid SubjectConfirmationData
      * node (if any) of the last assertion processed
      *
-     * @var DateTime
+     * @var int
      */
     private $_lastAssertionNotOnOrAfter;
 
@@ -93,12 +99,12 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      *
      * @var array
      */
-    private $_errors = [];
+    private $_errors = array();
 
     /**
      * Reason of the last error.
      *
-     * @var string
+     * @var string|null
      */
     private $_errorReason;
 
@@ -150,8 +156,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      * Set the strict mode active/disable
      *
      * @param bool $value Strict parameter
-     *
-     * @return array The settings data.
+     * @throws OneLogin_Saml2_Error
      */
     public function setStrict($value)
     {
@@ -174,7 +179,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      */
     public function processResponse($requestId = null)
     {
-        $this->_errors = [];
+        $this->_errors = array();
         $this->_errorReason = null;
         if (isset($_POST) && isset($_POST['SAMLResponse'])) {
             // AuthnResponse -- HTTP_POST Binding
@@ -183,6 +188,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
 
             if ($response->isValid($requestId)) {
                 $this->_attributes = $response->getAttributes();
+                $this->_attributesWithFriendlyName = $response->getAttributesWithFriendlyName();
                 $this->_nameid = $response->getNameId();
                 $this->_nameidFormat = $response->getNameIdFormat();
                 $this->_nameidNameQualifier = $response->getNameIdNameQualifier();
@@ -220,7 +226,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      */
     public function processSLO($keepLocalSession = false, $requestId = null, $retrieveParametersFromServer = false, $cbDeleteSession = null, $stay = false)
     {
-        $this->_errors = [];
+        $this->_errors = array();
         $this->_errorReason = null;
         if (isset($_GET) && isset($_GET['SAMLResponse'])) {
             $logoutResponse = new OneLogin_Saml2_LogoutResponse($this->_settings, $_GET['SAMLResponse']);
@@ -262,7 +268,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
 
                 $logoutResponse = $responseBuilder->getResponse();
 
-                $parameters = ['SAMLResponse' => $logoutResponse];
+                $parameters = array('SAMLResponse' => $logoutResponse);
                 if (isset($_GET['RelayState'])) {
                     $parameters['RelayState'] = $_GET['RelayState'];
                 }
@@ -292,8 +298,9 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      * @param string $url The target URL to redirect the user.
      * @param array $parameters Extra parameters to be passed as part of the url
      * @param bool $stay True if we want to stay (returns the url string) False to redirect
+     * @return string|null
      */
-    public function redirectTo($url = '', $parameters = [], $stay = false)
+    public function redirectTo($url = '', $parameters = array(), $stay = false)
     {
         assert('is_string($url)');
         assert('is_array($parameters)');
@@ -323,6 +330,15 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
     public function getAttributes()
     {
         return $this->_attributes;
+    }
+    /**
+     * Returns the set of SAML attributes indexed by FriendlyName
+     *
+     * @return array  Attributes of the user.
+     */
+    public function getAttributesWithFriendlyName()
+    {
+        return $this->_attributesWithFriendlyName;
     }
 
     /**
@@ -388,7 +404,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
     /**
      * Returns the reason for the last error
      *
-     * @return string  Error reason
+     * @return string|null Error reason
      */
     public function getLastErrorReason()
     {
@@ -414,6 +430,22 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
     }
 
     /**
+     * Returns the requested SAML attribute indexed by FriendlyName
+     *
+     * @param string $friendlyName The requested attribute of the user.
+     *
+     * @return array|null Requested SAML attribute ($friendlyName).
+     */
+    public function getAttributeWithFriendlyName($friendlyName)
+    {
+        assert('is_string($friendlyName)');
+        $value = null;
+        if (isset($this->_attributesWithFriendlyName[$friendlyName])) {
+            return $this->_attributesWithFriendlyName[$friendlyName];
+        }
+        return $value;
+    }
+    /**
      * Initiates the SSO process.
      *
      * @param string|null $returnTo The target URL the user should be returned to after login.
@@ -423,9 +455,9 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      * @param bool $stay True if we want to stay (returns the url string) False to redirect
      * @param bool $setNameIdPolicy When true the AuthNReuqest will set a nameIdPolicy element
      *
-     * @return If $stay is True, it return a string with the SLO URL + LogoutRequest + parameters
+     * @return string|null If $stay is True, it return a string with the SLO URL + LogoutRequest + parameters
      */
-    public function login($returnTo = null, $parameters = [], $forceAuthn = false, $isPassive = false, $stay = false, $setNameIdPolicy = true)
+    public function login($returnTo = null, $parameters = array(), $forceAuthn = false, $isPassive = false, $stay = false, $setNameIdPolicy = true)
     {
         assert('is_array($parameters)');
 
@@ -463,11 +495,11 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      * @param string|null $nameIdFormat The NameID Format will be set in the LogoutRequest.
      * @param string|null $nameIdNameQualifier The NameID NameQualifier will be set in the LogoutRequest.
      *
-     * @return If $stay is True, it return a string with the SLO URL + LogoutRequest + parameters
+     * @return string|null If $stay is True, it return a string with the SLO URL + LogoutRequest + parameters
      *
      * @throws OneLogin_Saml2_Error
      */
-    public function logout($returnTo = null, $parameters = [], $nameId = null, $sessionIndex = null, $stay = false, $nameIdFormat = null, $nameIdNameQualifier = null)
+    public function logout($returnTo = null, $parameters = array(), $nameId = null, $sessionIndex = null, $stay = false, $nameIdFormat = null, $nameIdNameQualifier = null)
     {
         assert('is_array($parameters)');
 
@@ -568,9 +600,8 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
             );
         }
 
-        $key = $this->_settings->getSPkey();
 
-        $objKey = new XMLSecurityKey($signAlgorithm, ['type' => 'private']);
+        $objKey = new XMLSecurityKey($signAlgorithm, array('type' => 'private'));
         $objKey->loadKey($key, false);
 
         $security = $this->_settings->getSecurityData();
@@ -613,7 +644,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
             );
         }
 
-        $objKey = new XMLSecurityKey($signAlgorithm, ['type' => 'private']);
+        $objKey = new XMLSecurityKey($signAlgorithm, array('type' => 'private'));
         $objKey->loadKey($key, false);
 
         $security = $this->_settings->getSecurityData();
@@ -651,7 +682,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
     }
 
     /**
-     * @return The NotOnOrAfter value of the valid
+     * @return int The NotOnOrAfter value of the valid
      *         SubjectConfirmationData node (if any)
      *         of the last assertion processed
      */
@@ -677,7 +708,7 @@ class  Ultraware_OneLogin_Saml2_Auth extends OneLogin_Saml2_Auth
      * If the SAMLResponse was encrypted, by default tries
      * to return the decrypted XML.
      *
-     * @return string The Response XML
+     * @return string|null The Response XML
      */
     public function getLastResponseXML()
     {

@@ -12,9 +12,6 @@
     },
     "require": {
         "php": ">=5.4.2",
-        "onelogin/php-saml": "~2.11"
-    },
-    "suggest": {
-        "aacotroneo/laravel-saml2": "to use the saml1 option in laravel"
+        "onelogin/php-saml": "~2.13"
     }
 }
