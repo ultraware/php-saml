@@ -3,15 +3,12 @@
   "description": "OneLogin PHP SAML IDP list extension",
   "license": "MIT",
   "autoload": {
-    "classmap": [
-      "lib/Saml2"
-    ],
     "psr-4": {
       "Ultraware\\phpSaml\\": "src/"
     }
   },
   "require": {
     "php": ">=5.4.2",
-    "onelogin/php-saml": "~2.16"
+    "onelogin/php-saml": "~3.1"
   }
 }

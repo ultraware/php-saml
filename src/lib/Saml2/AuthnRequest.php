@@ -1,26 +1,46 @@
 <?php
+/**
+ * This file is part of php-saml.
+ *
+ * (c) OneLogin Inc
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package OneLogin
+ * @author  OneLogin Inc <saml-info@onelogin.com>
+ * @license MIT https://github.com/onelogin/php-saml/blob/master/LICENSE
+ * @link    https://github.com/onelogin/php-saml
+ */
+
+
+namespace Ultraware\phpSaml\lib\Saml2;
+
+use OneLogin\Saml2\Constants;
+use OneLogin\Saml2\Utils;
 
 /**
  * SAML 2 Authentication Request
- *
  */
-class Ultraware_OneLogin_Saml2_AuthnRequest
+class AuthnRequest
 {
-
     /**
      * Object that represents the setting info
-     * @var OneLogin_Saml2_Settings
+     *
+     * @var Settings
      */
     protected $_settings;
 
     /**
      * SAML AuthNRequest string
+     *
      * @var string
      */
     private $_authnRequest;
 
     /**
      * SAML AuthNRequest ID.
+     *
      * @var string
      */
     private $_id;
@@ -28,28 +48,33 @@ class Ultraware_OneLogin_Saml2_AuthnRequest
     /**
      * Constructs the AuthnRequest object.
      *
-     * @param OneLogin_Saml2_Settings $settings Settings
-     * @param bool   $forceAuthn When true the AuthNReuqest will set the ForceAuthn='true'
-     * @param bool   $isPassive When true the AuthNReuqest will set the Ispassive='true'
-     * @param bool   $setNameIdPolicy When true the AuthNReuqest will set a nameIdPolicy
+     * @param Settings $settings SAML Toolkit Settings
+     * @param bool $forceAuthn When true the AuthNReuqest will set the ForceAuthn='true'
+     * @param bool $isPassive When true the AuthNReuqest will set the Ispassive='true'
+     * @param bool $setNameIdPolicy When true the AuthNReuqest will set a nameIdPolicy
      * @param string $nameIdValueReq Indicates to the IdP the subject that should be authenticated
      */
-    public function __construct(OneLogin_Saml2_Settings $settings, $forceAuthn = false, $isPassive = false, $setNameIdPolicy = true, $nameIdValueReq = null)
-    {
+    public function __construct(
+        \OneLogin\Saml2\Settings $settings,
+        $forceAuthn = false,
+        $isPassive = false,
+        $setNameIdPolicy = true,
+        $nameIdValueReq = null
+    ) {
         $this->_settings = $settings;
 
         $spData = $this->_settings->getSPData();
         $idpData = $this->_settings->getIdPData();
         $security = $this->_settings->getSecurityData();
 
-        $id = OneLogin_Saml2_Utils::generateUniqueID();
-        $issueInstant = OneLogin_Saml2_Utils::parseTime2SAML(time());
+        $id = Utils::generateUniqueID();
+        $issueInstant = Utils::parseTime2SAML(time());
 
         $subjectStr = "";
         if (isset($nameIdValueReq)) {
             $subjectStr = <<<SUBJECT
 
-    <saml:Subject>
+     <saml:Subject>
         <saml:NameID Format="{$spData['NameIDFormat']}">{$nameIdValueReq}</saml:NameID>
         <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer"></saml:SubjectConfirmation>
     </saml:Subject>
@@ -60,11 +85,10 @@ SUBJECT;
         if ($setNameIdPolicy) {
             $nameIDPolicyFormat = $spData['NameIDFormat'];
             if (isset($security['wantNameIdEncrypted']) && $security['wantNameIdEncrypted']) {
-                $nameIDPolicyFormat = OneLogin_Saml2_Constants::NAMEID_ENCRYPTED;
+                $nameIDPolicyFormat = Constants::NAMEID_ENCRYPTED;
             }
 
             $nameIdPolicyStr = <<<NAMEIDPOLICY
-
     <samlp:NameIDPolicy
         Format="{$nameIDPolicyFormat}"
         AllowCreate="true" />
@@ -111,17 +135,22 @@ ISPASSIVE;
                 $authnComparison = $security['requestedAuthnContextComparison'];
             }
 
+            $authnComparisonAttr = '';
+            if (!empty($authnComparison)) {
+                $authnComparisonAttr = sprintf('Comparison="%s"', $authnComparison);
+            }
+
             if ($security['requestedAuthnContext'] === true) {
                 $requestedAuthnStr = <<<REQUESTEDAUTHN
 
-    <samlp:RequestedAuthnContext Comparison="$authnComparison">
+    <samlp:RequestedAuthnContext $authnComparisonAttr>
         <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>
     </samlp:RequestedAuthnContext>
 REQUESTEDAUTHN;
             } else {
-                $requestedAuthnStr .= "    <samlp:RequestedAuthnContext Comparison=\"$authnComparison\">\n";
+                $requestedAuthnStr .= "    <samlp:RequestedAuthnContext $authnComparisonAttr>\n";
                 foreach ($security['requestedAuthnContext'] as $contextValue) {
-                    $requestedAuthnStr .= "        <saml:AuthnContextClassRef>".$contextValue."</saml:AuthnContextClassRef>\n";
+                    $requestedAuthnStr .= "        <saml:AuthnContextClassRef>" . $contextValue . "</saml:AuthnContextClassRef>\n";
                 }
                 $requestedAuthnStr .= '    </samlp:RequestedAuthnContext>';
             }
@@ -211,10 +240,5 @@ AUTHNREQUEST;
     public function getXML()
     {
         return $this->_authnRequest;
-    }
-
-    protected function getCustomRequestData()
-    {
-        return '';
     }
 }

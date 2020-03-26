@@ -4,7 +4,7 @@ Partial copy of onelogin/php-saml with scoping (idp-list)
 # usage
 ### create a new Saml2 auth class with
 ```php
-$auth = new Ultraware_OneLogin_Saml2_Auth();
+$auth = new \Ultraware\phpSaml\lib\Auth();
 ```
 ### Add the following to the settings.php to use scoping
 

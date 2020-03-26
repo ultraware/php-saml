@@ -14,23 +14,44 @@ class Saml2ServiceProvider extends \Aacotroneo\Saml2\Saml2ServiceProvider
      */
     public function register()
     {
-
-        $this->app->singleton('Aacotroneo\Saml2\Saml2Auth', function ($app) {
-            $config = config('saml2_settings');
-            if (empty($config['sp']['entityId'])) {
-                $config['sp']['entityId'] = URL::route('saml_metadata');
+        $this->app->singleton(
+            \Aacotroneo\Saml2\Saml2Auth::class,
+            function ($app) {
+                $idpName = $app->request->route('idpName');
+                $auth = $this->loadOneLoginAuthFromIpdConfig($idpName);
+                return new \Aacotroneo\Saml2\Saml2Auth($auth);
             }
-            if (empty($config['sp']['assertionConsumerService']['url'])) {
-                $config['sp']['assertionConsumerService']['url'] = URL::route('saml_acs');
-            }
-            if (empty($config['sp']['singleLogoutService']['url'])) {
-                $config['sp']['singleLogoutService']['url'] = URL::route('saml_sls');
-            }
+        );
+    }
 
-            $auth = new \Ultraware_OneLogin_Saml2_Auth($config);
+    public static function loadOneLoginAuthFromIpdConfig($idpName)
+    {
+        if (empty($idpName)) {
+            throw new \InvalidArgumentException("IDP name required.");
+        }
 
-            return new \Aacotroneo\Saml2\Saml2Auth($auth);
-        });
+        $config = config('saml2_' . $idpName . '_idp_settings');
 
+        if (empty($config['sp']['entityId'])) {
+            $config['sp']['entityId'] = URL::route('saml2_metadata', $idpName);
+        }
+        if (empty($config['sp']['assertionConsumerService']['url'])) {
+            $config['sp']['assertionConsumerService']['url'] = URL::route('saml2_acs', $idpName);
+        }
+        if (!empty($config['sp']['singleLogoutService']) &&
+            empty($config['sp']['singleLogoutService']['url'])) {
+            $config['sp']['singleLogoutService']['url'] = URL::route('saml2_sls', $idpName);
+        }
+        if (strpos($config['sp']['privateKey'], 'file://') === 0) {
+            $config['sp']['privateKey'] = static::extractPkeyFromFile($config['sp']['privateKey']);
+        }
+        if (strpos($config['sp']['x509cert'], 'file://') === 0) {
+            $config['sp']['x509cert'] = static::extractCertFromFile($config['sp']['x509cert']);
+        }
+        if (strpos($config['idp']['x509cert'], 'file://') === 0) {
+            $config['idp']['x509cert'] = static::extractCertFromFile($config['idp']['x509cert']);
+        }
+
+        return new \Ultraware\phpSaml\lib\Saml2\Auth($config);
     }
 }
