@@ -158,6 +158,7 @@ REQUESTEDAUTHN;
 
         $spEntityId = htmlspecialchars($spData['entityId'], ENT_QUOTES);
         $acsUrl = htmlspecialchars($spData['assertionConsumerService']['url'], ENT_QUOTES);
+        $singleSignOnService = htmlspecialchars($spData['singleSignOnService']['url'], ENT_QUOTES);
 
 
         $scoping = '';
@@ -188,7 +189,7 @@ SCOPING;
     Version="2.0"
 {$providerNameStr}{$forceAuthnStr}{$isPassiveStr}
     IssueInstant="$issueInstant"
-    Destination="{$idpData['singleSignOnService']['url']}"
+    Destination="{$singleSignOnService}"
     ProtocolBinding="{$spData['assertionConsumerService']['binding']}"
     AssertionConsumerServiceURL="{$acsUrl}">
     <saml:Issuer>{$spEntityId}</saml:Issuer>{$subjectStr}{$nameIdPolicyStr}{$requestedAuthnStr}{$scoping}
