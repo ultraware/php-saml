@@ -158,7 +158,7 @@ REQUESTEDAUTHN;
 
         $spEntityId = htmlspecialchars($spData['entityId'], ENT_QUOTES);
         $acsUrl = htmlspecialchars($spData['assertionConsumerService']['url'], ENT_QUOTES);
-        $singleSignOnService = htmlspecialchars($spData['singleSignOnService']['url'], ENT_QUOTES);
+        $singleSignOnService = htmlspecialchars($idpData['singleSignOnService']['url'], ENT_QUOTES);
 
 
         $scoping = '';
